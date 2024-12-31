@@ -8,7 +8,9 @@ import com.zsq.utils.Md5Util;
 import com.zsq.utils.ThreadLocalUtil;
 import jakarta.validation.constraints.Pattern;
 import org.apache.naming.factory.ResourceLinkFactory;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,5 +69,42 @@ public class UserController {
         String username = (String)map.get("username");
         User user = userService.findByUserName(username);
         return Result.success(user);
+    }
+    @PutMapping("/update")
+    public Result update(@RequestBody @Validated User user){
+        userService.update(user);
+        return Result.success();
+    }
+    @PatchMapping("/updateAvatar")
+    public Result updateAvatar(@RequestParam @URL String avatarUrl){
+        userService.updateAvatar(avatarUrl);
+        return Result.success();
+    }
+    @PatchMapping("/updatePwd")
+    public Result updatePwd(@RequestBody Map<String,String> params){
+        //1.校验参数validation无法满足这个方法的校验
+        String oldPwd = params.get("old_pwd");
+        String newPwd = params.get("new_pwd");
+        String rePwd = params.get("re_pwd");
+
+        if(!StringUtils.hasLength(oldPwd) || !StringUtils.hasLength(newPwd) || !StringUtils.hasLength(rePwd)){
+            return Result.error("缺少必要的参数");
+        }
+        //看原密码是否正确
+        //调用userService根据用户名拿到原密码，再与old_pwd比对
+        Map<String,Object> map = ThreadLocalUtil.get();
+        String username =(String)map.get("username");
+        User loginuser = userService.findByUserName(username);
+        if(!loginuser.getPassword().equals(Md5Util.getMD5String(oldPwd))){
+            return Result.error("原密码填写不正确");
+        }
+        //两次填写的密码是否一样
+        if(!rePwd.equals(newPwd)){
+            return Result.error("两次输入的密码不一致");
+        }
+        //2.调用service完成密码更新
+        Integer id = loginuser.getId();//根据用户名找到的用户信息，调用其方法找到ID
+        userService.updatePwd(newPwd,id);
+        return Result.success();
     }
 }
