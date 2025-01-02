@@ -52,6 +52,7 @@ public class UserController {
         if(Md5Util.getMD5String(password).equals(loginuser.getPassword())){
             //登录成功
             Map<String, Object> claims = new HashMap<>();
+            claims.put("id",loginuser.getId());
             claims.put("username", loginuser.getUsername());
             claims.put("password", loginuser.getPassword());
             String token = JwtUtil.genToken(claims);
@@ -104,6 +105,7 @@ public class UserController {
         }
         //2.调用service完成密码更新
         Integer id = loginuser.getId();//根据用户名找到的用户信息，调用其方法找到ID
+        System.out.println(id);
         userService.updatePwd(newPwd,id);
         return Result.success();
     }

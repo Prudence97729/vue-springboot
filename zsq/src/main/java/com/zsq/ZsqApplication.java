@@ -9,7 +9,7 @@ public class ZsqApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ZsqApplication.class, args);
-		System.out.println("正在运行");
+		System.out.println("正在运行...");
 	}
 
 }
